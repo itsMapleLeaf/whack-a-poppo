@@ -1,6 +1,6 @@
-import { css, injectGlobal } from "emotion"
+import { injectGlobal } from "emotion"
 
-const globalStyle = css`
+injectGlobal`
   * {
     margin: 0;
     padding: 0;
@@ -55,5 +55,3 @@ const globalStyle = css`
     vertical-align: top;
   }
 `
-
-injectGlobal`${globalStyle}`
