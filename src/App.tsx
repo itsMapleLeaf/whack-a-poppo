@@ -2,6 +2,7 @@ import styled from "@emotion/styled"
 import React, { useReducer } from "react"
 import randomRange from "./randomRange"
 import range from "./range"
+import sample from "./sample"
 import useInterval from "./useInterval"
 
 const panelCount = 8
@@ -54,6 +55,15 @@ type Action = { type: string; [key: string]: any }
 const reducer = (state: GameState, action: Action): GameState => {
   switch (action.type) {
     case "tick": {
+      // allowed to be mutated, is internal
+      const unoccupiedPanels = new Set(range(panelCount))
+
+      for (const target of state.targets) {
+        if (target.panel != null) {
+          unoccupiedPanels.delete(target.panel)
+        }
+      }
+
       return {
         ...state,
         targets: state.targets.map<TargetState>((target) => {
@@ -69,9 +79,16 @@ const reducer = (state: GameState, action: Action): GameState => {
 
           // no panel? find one
           if (target.panel === undefined) {
+            const [newPanel] = sample(unoccupiedPanels)
+
+            // if all panels are occupied, do nothing
+            if (newPanel == null) return target
+
+            unoccupiedPanels.delete(newPanel)
+
             return {
               ...target,
-              panel: Math.floor(randomRange(0, 8)),
+              panel: newPanel,
               actionTicks: randomRange.int(10, 20),
             }
           }
