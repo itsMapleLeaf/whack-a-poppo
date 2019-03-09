@@ -8,15 +8,18 @@ injectGlobal`
   }
 
   :root {
+    background-color: rgb(30, 30, 30);
+    color: rgb(230, 230, 230);
+
     font: 16px Roboto, sans-serif;
     overflow-wrap: break-word;
     line-height: 1.5;
   }
 
-  :focus {
+  /* :focus {
     outline: 2px solid hsla(219, 63%, 24%, 0.5);
     outline-offset: -2px;
-  }
+  } */
 
   h1,
   h2,
