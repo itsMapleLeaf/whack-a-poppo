@@ -1,7 +1,7 @@
 /**
  * Returns a number of items randomly from the array
  */
-const sample = <T>(items: T[], count = 1) => {
+const sample = <T>(items: Iterable<T>, count = 1) => {
   const copied = [...items]
   const result = Array<T>(count)
 
