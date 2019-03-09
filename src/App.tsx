@@ -1,4 +1,5 @@
 import styled from "@emotion/styled"
+import { keyframes } from "emotion"
 import React, { useReducer } from "react"
 import randomRange from "./randomRange"
 import range from "./range"
@@ -16,34 +17,42 @@ type GameState = {
 type TargetState = {
   key: number
   panel?: number
+  status: TargetStatus
   actionTicks: number
 }
+
+type TargetStatus = "idle" | "visible" | "hiding" | "hit"
 
 const initialState: GameState = {
   targets: [
     {
       key: 0,
       panel: undefined,
+      status: "idle",
       actionTicks: Math.floor(randomRange(10, 20)),
     },
     {
       key: 1,
       panel: undefined,
+      status: "idle",
       actionTicks: Math.floor(randomRange(10, 20)),
     },
     {
       key: 2,
       panel: undefined,
+      status: "idle",
       actionTicks: Math.floor(randomRange(10, 20)),
     },
     {
       key: 3,
       panel: undefined,
+      status: "idle",
       actionTicks: Math.floor(randomRange(10, 20)),
     },
     {
       key: 4,
       panel: undefined,
+      status: "idle",
       actionTicks: Math.floor(randomRange(10, 20)),
     },
   ],
@@ -77,8 +86,8 @@ const reducer = (state: GameState, action: Action): GameState => {
 
           // once the ticks hit 0, we need to do something
 
-          // no panel? find one
-          if (target.panel === undefined) {
+          // not visible? find a new panel
+          if (target.status !== "visible") {
             const [newPanel] = sample(unoccupiedPanels)
 
             // if all panels are occupied, do nothing
@@ -90,14 +99,15 @@ const reducer = (state: GameState, action: Action): GameState => {
               ...target,
               panel: newPanel,
               actionTicks: randomRange.int(10, 20),
+              status: "visible",
             }
           }
 
           // have a panel? hide
           return {
             ...target,
-            panel: undefined,
             actionTicks: randomRange.int(10, 20),
+            status: "hiding",
           }
         }),
       }
@@ -105,7 +115,8 @@ const reducer = (state: GameState, action: Action): GameState => {
 
     case "hit": {
       const hitTarget = state.targets.find(
-        (target) => target.panel === action.panel,
+        (target) =>
+          target.panel === action.panel && target.status === "visible",
       )
 
       if (!hitTarget) return state
@@ -117,8 +128,8 @@ const reducer = (state: GameState, action: Action): GameState => {
             ? target
             : {
                 ...target,
-                panel: undefined,
-                actionTicks: randomRange.int(10, 20),
+                status: "hit",
+                actionTicks: randomRange.int(20, 30),
               },
         ),
         score: state.score + 1,
@@ -135,11 +146,9 @@ const App = () => {
 
   useInterval(() => dispatch({ type: "tick" }), tickPeriodMs)
 
-  const getPanelStyle = (panel: number) => {
-    const hasTarget = state.targets.some((target) => target.panel === panel)
-    return {
-      backgroundColor: hasTarget ? "green" : undefined,
-    }
+  const getPanelStatus = (panel: number) => {
+    const target = state.targets.find((target) => target.panel === panel)
+    return target ? target.status : "idle"
   }
 
   return (
@@ -148,7 +157,7 @@ const App = () => {
         {range(panelCount).map((panel) => (
           <Panel
             key={panel}
-            style={getPanelStyle(panel)}
+            status={getPanelStatus(panel)}
             onClick={() => dispatch({ type: "hit", panel })}
           />
         ))}
@@ -175,11 +184,46 @@ const PanelGrid = styled.section`
   grid-gap: 1rem;
 `
 
-const Panel = styled.button`
+const Panel = styled.button<{ status: TargetStatus }>`
   width: 100px;
   height: 100px;
-  background-color: gray;
+  animation: ${(props) => statusAnimations[props.status]} 0.2s forwards;
 `
+
+const statusAnimations: Record<TargetStatus, string> = {
+  idle: keyframes`
+    from {
+      background-color: gray;
+    }
+    to {
+      background-color: gray;
+    }
+  `,
+  visible: keyframes`
+    from {
+      background-color: gray;
+    }
+    to {
+      background-color: green;
+    }
+  `,
+  hiding: keyframes`
+    from {
+      background-color: green;
+    }
+    to {
+      background-color: gray;
+    }
+  `,
+  hit: keyframes`
+    from {
+      background-color: white;
+    }
+    to {
+      background-color: gray;
+    }
+  `,
+}
 
 const ScoreDisplay = styled.p`
   font: 32px "Roboto Condensed", sans-serif;
