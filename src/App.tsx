@@ -135,19 +135,20 @@ const App = () => {
 
   useInterval(() => dispatch({ type: "tick" }), tickPeriodMs)
 
+  const getPanelStyle = (panel: number) => {
+    const hasTarget = state.targets.some((target) => target.panel === panel)
+    return {
+      backgroundColor: hasTarget ? "green" : undefined,
+    }
+  }
+
   return (
     <Main>
       <PanelGrid>
         {range(panelCount).map((panel) => (
           <Panel
             key={panel}
-            style={{
-              backgroundColor: state.targets.some(
-                (target) => target.panel === panel,
-              )
-                ? "green"
-                : undefined,
-            }}
+            style={getPanelStyle(panel)}
             onClick={() => dispatch({ type: "hit", panel })}
           />
         ))}
