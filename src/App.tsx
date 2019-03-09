@@ -19,9 +19,12 @@ type TargetState = {
   panel?: number
   status: TargetStatus
   actionTicks: number
+  score: TargetScore
 }
 
 type TargetStatus = "idle" | "visible" | "hiding" | "hit"
+
+type TargetScore = 1 | -1
 
 const initialState: GameState = {
   targets: [
@@ -29,31 +32,36 @@ const initialState: GameState = {
       key: 0,
       panel: undefined,
       status: "idle",
-      actionTicks: Math.floor(randomRange(10, 20)),
+      actionTicks: randomRange.int(15, 30),
+      score: 1,
     },
     {
       key: 1,
       panel: undefined,
       status: "idle",
-      actionTicks: Math.floor(randomRange(10, 20)),
+      actionTicks: randomRange.int(15, 30),
+      score: 1,
     },
     {
       key: 2,
       panel: undefined,
       status: "idle",
-      actionTicks: Math.floor(randomRange(10, 20)),
+      actionTicks: randomRange.int(15, 30),
+      score: -1,
     },
     {
       key: 3,
       panel: undefined,
       status: "idle",
-      actionTicks: Math.floor(randomRange(10, 20)),
+      actionTicks: randomRange.int(15, 30),
+      score: -1,
     },
     {
       key: 4,
       panel: undefined,
       status: "idle",
-      actionTicks: Math.floor(randomRange(10, 20)),
+      actionTicks: randomRange.int(15, 30),
+      score: -1,
     },
   ],
   score: 0,
@@ -98,7 +106,7 @@ const reducer = (state: GameState, action: Action): GameState => {
             return {
               ...target,
               panel: newPanel,
-              actionTicks: randomRange.int(10, 20),
+              actionTicks: randomRange.int(15, 30),
               status: "visible",
             }
           }
@@ -106,7 +114,7 @@ const reducer = (state: GameState, action: Action): GameState => {
           // have a panel? hide
           return {
             ...target,
-            actionTicks: randomRange.int(10, 20),
+            actionTicks: randomRange.int(15, 30),
             status: "hiding",
           }
         }),
@@ -129,10 +137,10 @@ const reducer = (state: GameState, action: Action): GameState => {
             : {
                 ...target,
                 status: "hit",
-                actionTicks: randomRange.int(20, 30),
+                actionTicks: randomRange.int(15, 30),
               },
         ),
-        score: state.score + 1,
+        score: state.score + hitTarget.score,
       }
     }
 
@@ -146,22 +154,22 @@ const App = () => {
 
   useInterval(() => dispatch({ type: "tick" }), tickPeriodMs)
 
-  const getPanelStatus = (panel: number) => {
+  const renderPanel = (panel: number) => {
     const target = state.targets.find((target) => target.panel === panel)
-    return target ? target.status : "idle"
+
+    return (
+      <Panel
+        key={panel}
+        status={target ? target.status : "idle"}
+        score={target && target.score}
+        onClick={() => dispatch({ type: "hit", panel })}
+      />
+    )
   }
 
   return (
     <Main>
-      <PanelGrid>
-        {range(panelCount).map((panel) => (
-          <Panel
-            key={panel}
-            status={getPanelStatus(panel)}
-            onClick={() => dispatch({ type: "hit", panel })}
-          />
-        ))}
-      </PanelGrid>
+      <PanelGrid>{range(panelCount).map(renderPanel)}</PanelGrid>
       <ScoreDisplay>score: {state.score}</ScoreDisplay>
     </Main>
   )
@@ -184,14 +192,16 @@ const PanelGrid = styled.section`
   grid-gap: 1rem;
 `
 
-const Panel = styled.button<{ status: TargetStatus }>`
+type PanelProps = { status: TargetStatus; score?: TargetScore }
+
+const Panel = styled.button<PanelProps>`
   width: 100px;
   height: 100px;
-  animation: ${(props) => statusAnimations[props.status]} 0.2s forwards;
+  animation: ${(props) => statusAnimations[props.status](props)} 0.2s forwards;
 `
 
-const statusAnimations: Record<TargetStatus, string> = {
-  idle: keyframes`
+const statusAnimations: Record<TargetStatus, (props: PanelProps) => string> = {
+  idle: () => keyframes`
     from {
       background-color: gray;
     }
@@ -199,25 +209,25 @@ const statusAnimations: Record<TargetStatus, string> = {
       background-color: gray;
     }
   `,
-  visible: keyframes`
+  visible: (props) => keyframes`
     from {
       background-color: gray;
     }
     to {
-      background-color: green;
+      background-color: ${props.score === 1 ? "green" : "lightgreen"};
     }
   `,
-  hiding: keyframes`
+  hiding: (props) => keyframes`
     from {
-      background-color: green;
+      background-color: ${props.score === 1 ? "green" : "lightgreen"};
     }
     to {
       background-color: gray;
     }
   `,
-  hit: keyframes`
+  hit: () => keyframes`
     from {
-      background-color: white;
+      background-color: lightgray;
     }
     to {
       background-color: gray;
