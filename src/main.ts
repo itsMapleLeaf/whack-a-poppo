@@ -1,7 +1,5 @@
 import barrelImagePath from "./assets/whack_barrel.PNG"
 
-console.log(barrelImagePath)
-
 const canvas = document.createElement("canvas")
 canvas.width = 1000
 canvas.height = 1000
@@ -14,3 +12,5 @@ barrelImage.src = barrelImagePath
 barrelImage.onload = () => {
   context.drawImage(barrelImage, 10, 10)
 }
+
+document.body.append(canvas)
