@@ -1,11 +1,11 @@
 import styled from "@emotion/styled"
-import React, { useEffect, useReducer } from "react"
+import React, { useReducer } from "react"
 import randomRange from "./randomRange"
 import range from "./range"
-import sample from "./sample"
-import wait from "./wait"
+import useInterval from "./useInterval"
 
 const panelCount = 8
+const tickPeriodMs = 100
 
 type GameState = {
   targets: TargetState[]
@@ -15,10 +15,37 @@ type GameState = {
 type TargetState = {
   key: number
   panel?: number
+  actionTicks: number
 }
 
 const initialState: GameState = {
-  targets: [{ key: 0, panel: undefined }],
+  targets: [
+    {
+      key: 0,
+      panel: undefined,
+      actionTicks: Math.floor(randomRange(10, 20)),
+    },
+    {
+      key: 1,
+      panel: undefined,
+      actionTicks: Math.floor(randomRange(10, 20)),
+    },
+    {
+      key: 2,
+      panel: undefined,
+      actionTicks: Math.floor(randomRange(10, 20)),
+    },
+    {
+      key: 3,
+      panel: undefined,
+      actionTicks: Math.floor(randomRange(10, 20)),
+    },
+    {
+      key: 4,
+      panel: undefined,
+      actionTicks: Math.floor(randomRange(10, 20)),
+    },
+  ],
   score: 0,
 }
 
@@ -26,30 +53,60 @@ type Action = { type: string; [key: string]: any }
 
 const reducer = (state: GameState, action: Action): GameState => {
   switch (action.type) {
-    case "findPanel":
+    case "tick": {
       return {
         ...state,
         targets: state.targets.map<TargetState>((target) => {
-          if (target.key !== action.key) return target
+          // if we still have ticks, decrement them
+          if (target.actionTicks > 0) {
+            return {
+              ...target,
+              actionTicks: target.actionTicks - 1,
+            }
+          }
 
-          const [newPanel] = sample(
-            range(panelCount).filter((n) =>
-              state.targets.some((target) => target.panel !== n),
-            ),
-          )
+          // once the ticks hit 0, we need to do something
 
-          return { ...target, panel: newPanel }
+          // no panel? find one
+          if (target.panel === undefined) {
+            return {
+              ...target,
+              panel: Math.floor(randomRange(0, 8)),
+              actionTicks: randomRange.int(10, 20),
+            }
+          }
+
+          // have a panel? hide
+          return {
+            ...target,
+            panel: undefined,
+            actionTicks: randomRange.int(10, 20),
+          }
         }),
       }
+    }
 
-    case "hide":
+    case "hit": {
+      const hitTarget = state.targets.find(
+        (target) => target.panel === action.panel,
+      )
+
+      if (!hitTarget) return state
+
       return {
         ...state,
-        targets: state.targets.map<TargetState>((target) => {
-          if (target.key !== action.key) return target
-          return { ...target, panel: undefined }
-        }),
+        targets: state.targets.map<TargetState>((target) =>
+          target !== hitTarget
+            ? target
+            : {
+                ...target,
+                panel: undefined,
+                actionTicks: randomRange.int(10, 20),
+              },
+        ),
+        score: state.score + 1,
       }
+    }
 
     default:
       return state
@@ -59,36 +116,22 @@ const reducer = (state: GameState, action: Action): GameState => {
 const App = () => {
   const [state, dispatch] = useReducer(reducer, initialState)
 
-  const runTargetLoop = async (targetKey: number) => {
-    while (true) {
-      await wait(randomRange(1000, 2000))
-
-      dispatch({ type: "findPanel", key: targetKey })
-
-      await wait(randomRange(1000, 2000))
-
-      dispatch({ type: "hide", key: targetKey })
-    }
-  }
-
-  useEffect(() => {
-    runTargetLoop(0)
-  }, [])
+  useInterval(() => dispatch({ type: "tick" }), tickPeriodMs)
 
   return (
     <Main>
       <PanelGrid>
-        {range(panelCount).map((n) => (
+        {range(panelCount).map((panel) => (
           <Panel
-            key={n}
+            key={panel}
             style={{
               backgroundColor: state.targets.some(
-                (target) => target.panel === n,
+                (target) => target.panel === panel,
               )
                 ? "green"
                 : undefined,
             }}
-            // onClick={() => dispatch({ type: "scored", key: panel.key })}
+            onClick={() => dispatch({ type: "hit", panel })}
           />
         ))}
       </PanelGrid>
