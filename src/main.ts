@@ -1,4 +1,4 @@
-import barrelImagePath from "./assets/whack_barrel.PNG"
+import barrelImagePath from "./assets/barrel.png"
 
 const canvas = document.createElement("canvas")
 canvas.width = 1000
