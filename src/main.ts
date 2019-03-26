@@ -1,16 +1,9 @@
+import * as pixi from "pixi.js"
 import barrelImagePath from "./assets/barrel.png"
 
-const canvas = document.createElement("canvas")
-canvas.width = 1000
-canvas.height = 1000
+const barrel = pixi.Sprite.from(barrelImagePath)
 
-const context = canvas.getContext("2d")!
+const app = new pixi.Application({ width: 800, height: 600 })
+app.stage.addChild(barrel)
 
-const barrelImage = new Image()
-
-barrelImage.src = barrelImagePath
-barrelImage.onload = () => {
-  context.drawImage(barrelImage, 10, 10)
-}
-
-document.body.append(canvas)
+document.body.append(app.view)
