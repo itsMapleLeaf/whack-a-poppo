@@ -2,9 +2,9 @@
   "name": "whack-a-poppo",
   "version": "0.1.0",
   "private": true,
-  "dependencies": {
+  "devDependencies": {
+    "@babel/polyfill": "^7.4.3",
     "parcel-bundler": "1.11.0",
-    "pixi.js": "^5.0.0-rc.3",
     "typescript": "^3.3.3333"
   },
   "scripts": {
