@@ -3,12 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "devDependencies": {
-    "@babel/polyfill": "^7.4.3",
-    "parcel-bundler": "1.11.0",
-    "typescript": "^3.3.3333"
+    "poi": "^12.6.4",
+    "typescript": "~3.4.3"
   },
   "scripts": {
-    "dev": "parcel src/index.html",
-    "build": "parcel build src/index.html"
+    "dev": "poi --serve src/main.ts",
+    "build": "poi --prod src/main.ts"
   }
 }
